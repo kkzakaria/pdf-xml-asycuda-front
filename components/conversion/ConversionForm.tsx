@@ -3,11 +3,15 @@
 import { useCallback, type ChangeEvent, type FormEvent } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { ExchangeRateInput } from '@/components/conversion/ExchangeRateInput';
 import type { ConversionMode } from '@/types/conversion';
+import type { GuceCurrency } from '@/types/guce';
 
 interface ConversionFormProps {
   tauxDouane: string;
   onTauxDouaneChange: (value: string) => void;
+  selectedCurrency: GuceCurrency;
+  onCurrencyChange: (currency: GuceCurrency) => void;
   rapportPaiement: string;
   onRapportPaiementChange: (value: string) => void;
   mode: ConversionMode;
@@ -22,6 +26,8 @@ interface ConversionFormProps {
 export function ConversionForm({
   tauxDouane,
   onTauxDouaneChange,
+  selectedCurrency,
+  onCurrencyChange,
   rapportPaiement,
   onRapportPaiementChange,
   mode,
@@ -32,15 +38,6 @@ export function ConversionForm({
   hasFile,
   showAdvancedOptions = false,
 }: ConversionFormProps) {
-  const handleTauxDouaneChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      if (value === '' || /^\d*\.?\d*$/.test(value)) {
-        onTauxDouaneChange(value);
-      }
-    },
-    [onTauxDouaneChange]
-  );
 
   const handleRapportPaiementChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
@@ -61,17 +58,12 @@ export function ConversionForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      <Input
-        label="Taux de change douanier (CDF/USD)"
-        name="tauxDouane"
-        type="text"
-        inputMode="decimal"
-        placeholder="ex: 2850.00"
+      <ExchangeRateInput
         value={tauxDouane}
-        onChange={handleTauxDouaneChange}
+        onChange={onTauxDouaneChange}
+        currency={selectedCurrency}
+        onCurrencyChange={onCurrencyChange}
         disabled={isDisabled}
-        helpText="Taux de change communiqué par la douane"
-        required
       />
 
       {showAdvancedOptions && (
