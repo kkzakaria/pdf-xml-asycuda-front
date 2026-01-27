@@ -9,13 +9,74 @@ interface ConversionResultProps {
   result: ConversionResultType;
   onDownload: () => void;
   onReset: () => void;
+  showDetails?: boolean;
 }
 
 export function ConversionResult({
   result,
   onDownload,
   onReset,
+  showDetails = false,
 }: ConversionResultProps) {
+  // Vue simplifiee pour les utilisateurs non-admin
+  if (!showDetails) {
+    return (
+      <div className="flex flex-col items-center gap-6 py-8">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+          <svg
+            className="h-10 w-10 text-green-600 dark:text-green-400"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
+            Conversion reussie
+          </h2>
+          <p className="mt-2 text-zinc-500 dark:text-zinc-400">
+            Votre fichier XML est pret
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-3 w-full max-w-xs">
+          <Button variant="primary" size="lg" onClick={onDownload} className="w-full">
+            <svg
+              className="h-5 w-5"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              />
+            </svg>
+            Telecharger le XML
+          </Button>
+          <Button variant="outline" onClick={onReset} className="w-full">
+            Nouvelle conversion
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Vue complete pour les administrateurs
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
@@ -39,7 +100,7 @@ export function ConversionResult({
           </div>
           <div>
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-              Conversion réussie
+              Conversion reussie
             </h2>
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
               {result.message}
@@ -80,7 +141,7 @@ export function ConversionResult({
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                  Fichier XML généré
+                  Fichier XML genere
                 </h3>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
                   Format: XML_AAAAMMJJ_HHMMSS.xml
@@ -102,7 +163,7 @@ export function ConversionResult({
                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                   />
                 </svg>
-                Télécharger le XML
+                Telecharger le XML
               </Button>
             </div>
 
