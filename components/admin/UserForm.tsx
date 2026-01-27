@@ -89,7 +89,7 @@ export function UserForm({ user, isCurrentUser }: UserFormProps) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
         />
       </div>
 
@@ -105,7 +105,7 @@ export function UserForm({ user, isCurrentUser }: UserFormProps) {
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
         />
       </div>
 
@@ -123,7 +123,7 @@ export function UserForm({ user, isCurrentUser }: UserFormProps) {
           onChange={(e) => setPassword(e.target.value)}
           required={!isEditing}
           minLength={8}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
         />
         {!isEditing && (
           <p className="mt-1 text-sm text-gray-500">Minimum 8 caracteres</p>
@@ -143,7 +143,7 @@ export function UserForm({ user, isCurrentUser }: UserFormProps) {
               id="role"
               value={role}
               onChange={(e) => setRole(e.target.value as UserRole)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
             >
               <option value="user">Utilisateur</option>
               <option value="admin">Administrateur</option>
