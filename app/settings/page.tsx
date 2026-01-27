@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
 import { useApiConfig } from '@/hooks/useApiConfig';
+import { UserNav } from '@/components/auth/UserNav';
 
 export default function SettingsPage() {
   const { config, defaultConfig, defaultMode, isConfigured, isLoading, updateConfig, updateDefaultMode, clearConfig } = useApiConfig();
@@ -101,6 +102,7 @@ export default function SettingsPage() {
             </svg>
             Retour au convertisseur
           </Link>
+          <UserNav />
         </div>
       </header>
 
