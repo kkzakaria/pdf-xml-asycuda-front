@@ -13,6 +13,7 @@ import { useApiConfig } from '@/hooks/useApiConfig';
 import { useConversion } from '@/hooks/useConversion';
 import { UserNav } from '@/components/auth/UserNav';
 import type { ConversionMode } from '@/types/conversion';
+import type { GuceCurrency } from '@/types/guce';
 
 export default function Home() {
   const { data: session } = useSession();
@@ -34,6 +35,7 @@ export default function Home() {
   const [rapportPaiementInput, setRapportPaiementInput] = useState('');
   const [mode, setModeState] = useState<ConversionMode>(defaultMode);
   const [modeInitialized, setModeInitialized] = useState(false);
+  const [selectedCurrency, setSelectedCurrency] = useState<GuceCurrency>('USD');
 
   const handleTauxDouaneChange = useCallback(
     (value: string) => {
@@ -67,6 +69,7 @@ export default function Home() {
     setTauxDouaneInput('');
     setRapportPaiementInput('');
     setModeState(defaultMode);
+    setSelectedCurrency('USD');
   }, [reset, defaultMode]);
 
   // Synchronize mode with defaultMode from settings on initial load
@@ -223,6 +226,8 @@ export default function Home() {
                   <ConversionForm
                     tauxDouane={tauxDouaneInput}
                     onTauxDouaneChange={handleTauxDouaneChange}
+                    selectedCurrency={selectedCurrency}
+                    onCurrencyChange={setSelectedCurrency}
                     rapportPaiement={rapportPaiementInput}
                     onRapportPaiementChange={handleRapportPaiementChange}
                     mode={mode}
