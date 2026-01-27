@@ -62,17 +62,6 @@ export function getDefaultMode(): 'sync' | 'async' {
 }
 
 class ApiClient {
-  private getHeaders(): HeadersInit {
-    const config = getApiConfig();
-    return {
-      'X-API-Key': config.apiKey,
-    };
-  }
-
-  private getBaseUrl(): string {
-    return getApiConfig().baseUrl.replace(/\/$/, '');
-  }
-
   private async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}`;
@@ -100,9 +89,8 @@ class ApiClient {
       formData.append('rapport_paiement', rapportPaiement);
     }
 
-    const response = await fetch(`${this.getBaseUrl()}/api/v1/convert`, {
+    const response = await fetch('/api/convert', {
       method: 'POST',
-      headers: this.getHeaders(),
       body: formData,
     });
 
@@ -122,9 +110,8 @@ class ApiClient {
       formData.append('rapport_paiement', rapportPaiement);
     }
 
-    const response = await fetch(`${this.getBaseUrl()}/api/v1/convert/async`, {
+    const response = await fetch('/api/convert/async', {
       method: 'POST',
-      headers: this.getHeaders(),
       body: formData,
     });
 
@@ -132,27 +119,24 @@ class ApiClient {
   }
 
   async getJobStatus(jobId: string): Promise<JobStatus> {
-    const response = await fetch(`${this.getBaseUrl()}/api/v1/convert/${jobId}`, {
+    const response = await fetch(`/api/convert/${jobId}`, {
       method: 'GET',
-      headers: this.getHeaders(),
     });
 
     return this.handleResponse<JobStatus>(response);
   }
 
   async getJobResult(jobId: string): Promise<JobResultResponse> {
-    const response = await fetch(`${this.getBaseUrl()}/api/v1/convert/${jobId}/result`, {
+    const response = await fetch(`/api/convert/${jobId}/result`, {
       method: 'GET',
-      headers: this.getHeaders(),
     });
 
     return this.handleResponse<JobResultResponse>(response);
   }
 
   async downloadXml(jobId: string): Promise<Blob> {
-    const response = await fetch(`${this.getBaseUrl()}/api/v1/convert/${jobId}/download`, {
+    const response = await fetch(`/api/convert/${jobId}/download`, {
       method: 'GET',
-      headers: this.getHeaders(),
     });
 
     if (!response.ok) {
