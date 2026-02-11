@@ -103,7 +103,7 @@ export function ExchangeRateInput({
   // Message d'aide dynamique
   let helpText = 'Taux de change communique par la douane';
   if (rate !== null) {
-    helpText = `Taux GUCE du ${formattedDate}: ${rate.toFixed(2)} XOF/${currency}${fromCache ? ' (cache)' : ''}`;
+    helpText = `Taux GUCE du ${formattedDate}: ${rate} XOF/${currency}${fromCache ? ' (cache)' : ''}`;
   } else if (error && !value) {
     helpText = 'Saisie manuelle requise';
   }
@@ -233,7 +233,7 @@ export function ExchangeRateInput({
             disabled={disabled}
             className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
           >
-            Appliquer {rate.toFixed(2)}
+            Appliquer {rate}
           </button>
         )}
       </div>
