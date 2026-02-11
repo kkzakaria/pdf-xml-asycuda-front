@@ -2,23 +2,22 @@ import Link from "next/link";
 import { prisma } from "@/lib/auth/db";
 
 export default async function AdminDashboard() {
-  const [totalUsers, activeUsers, adminUsers] = await Promise.all([
+  const [totalUsers, activeUsers, adminUsers, recentUsers] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { isActive: true } }),
     prisma.user.count({ where: { role: "admin" } }),
+    prisma.user.findMany({
+      take: 5,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true,
+      },
+    }),
   ]);
-
-  const recentUsers = await prisma.user.findMany({
-    take: 5,
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      role: true,
-      createdAt: true,
-    },
-  });
 
   return (
     <div>

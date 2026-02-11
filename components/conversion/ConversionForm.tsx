@@ -7,6 +7,42 @@ import { ExchangeRateInput } from '@/components/conversion/ExchangeRateInput';
 import type { ConversionMode } from '@/types/conversion';
 import type { GuceCurrency } from '@/types/guce';
 
+const LightningIcon = (
+  <svg
+    className="h-5 w-5"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    aria-hidden="true"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M13 10V3L4 14h7v7l9-11h-7z"
+    />
+  </svg>
+);
+
+const AsyncIcon = (
+  <svg
+    className="h-5 w-5"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    aria-hidden="true"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+    />
+  </svg>
+);
+
 interface ConversionFormProps {
   tauxDouane: string;
   onTauxDouaneChange: (value: string) => void;
@@ -105,21 +141,7 @@ export function ConversionForm({
                   disabled={isDisabled}
                   className="sr-only"
                 />
-                <svg
-                  className="h-5 w-5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
+                {LightningIcon}
                 <span className="text-sm font-medium">Synchrone</span>
               </label>
               <label
@@ -143,21 +165,7 @@ export function ConversionForm({
                   disabled={isDisabled}
                   className="sr-only"
                 />
-                <svg
-                  className="h-5 w-5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
-                </svg>
+                {AsyncIcon}
                 <span className="text-sm font-medium">Asynchrone</span>
               </label>
             </div>

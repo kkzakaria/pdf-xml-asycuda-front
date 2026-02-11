@@ -9,12 +9,16 @@ import type {
   JobStatus,
 } from '@/types/api';
 
-const STORAGE_KEY = 'pdf-xml-asycuda-config';
+const STORAGE_KEY = 'pdf-xml-asycuda-config-v2';
+const LEGACY_STORAGE_KEY = 'pdf-xml-asycuda-config';
 
 // Default API URL from environment variable (Render deployment)
 const DEFAULT_API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 const DEFAULT_API_KEY = process.env.NEXT_PUBLIC_API_KEY || '';
 const DEFAULT_MODE = (process.env.NEXT_PUBLIC_DEFAULT_MODE as 'sync' | 'async') || 'async';
+
+// In-memory cache to avoid repeated localStorage reads
+let configCache: ApiConfig | null = null;
 
 export function getDefaultConfig(): ApiConfig {
   return {
@@ -24,30 +28,49 @@ export function getDefaultConfig(): ApiConfig {
   };
 }
 
+function migrateStorage(): void {
+  if (typeof window === 'undefined') return;
+  const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+  if (legacy && !localStorage.getItem(STORAGE_KEY)) {
+    localStorage.setItem(STORAGE_KEY, legacy);
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
+  }
+}
+
 export function getApiConfig(): ApiConfig {
   if (typeof window === 'undefined') {
     return getDefaultConfig();
   }
 
+  if (configCache) return configCache;
+
+  migrateStorage();
+
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) {
     try {
       const parsed = JSON.parse(stored) as ApiConfig;
-      // If stored config has values, use them; otherwise use defaults
-      return {
+      const result: ApiConfig = {
         baseUrl: parsed.baseUrl || DEFAULT_API_URL,
         apiKey: parsed.apiKey || DEFAULT_API_KEY,
         defaultMode: parsed.defaultMode || DEFAULT_MODE,
       };
+      configCache = result;
+      return result;
     } catch {
-      return getDefaultConfig();
+      const defaults = getDefaultConfig();
+      configCache = defaults;
+      return defaults;
     }
   }
-  return getDefaultConfig();
+  const defaults = getDefaultConfig();
+  configCache = defaults;
+  return defaults;
 }
 
 export function saveApiConfig(config: ApiConfig): void {
   if (typeof window === 'undefined') return;
+  configCache = config;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
 }
 

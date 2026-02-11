@@ -129,9 +129,10 @@ export function useConversion(): UseConversionReturn {
       dispatch({ type: 'UPDATE_PROGRESS', payload: progress });
 
       if (status.status === 'completed') {
-        const jobResult = await apiClient.getJobResult(jobId);
-        // Download XML immediately while it's still available
-        const xmlBlob = await downloadXmlImmediately(jobId);
+        const [jobResult, xmlBlob] = await Promise.all([
+          apiClient.getJobResult(jobId),
+          downloadXmlImmediately(jobId),
+        ]);
 
         return {
           result: {
