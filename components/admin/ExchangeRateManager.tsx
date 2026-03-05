@@ -92,10 +92,11 @@ export function ExchangeRateManager() {
     }
   };
 
-  const sourceLabel = (source: string) =>
-    source === 'guce'
-      ? { text: 'GUCE', className: 'bg-green-100 text-green-700' }
-      : { text: 'Manuel admin', className: 'bg-orange-100 text-orange-700' };
+  const sourceLabel = (source: string) => {
+    if (source === 'guce') return { text: 'GUCE', className: 'bg-green-100 text-green-700' };
+    if (source === 'admin') return { text: 'Manuel admin', className: 'bg-orange-100 text-orange-700' };
+    return { text: source, className: 'bg-gray-100 text-gray-700' };
+  };
 
   if (isLoading) {
     return <div className="text-sm text-gray-500 py-4">Chargement des taux...</div>;

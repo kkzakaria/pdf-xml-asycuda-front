@@ -90,15 +90,6 @@ export function useGuceRates(currency: GuceCurrency = 'USD') {
       setRates(data.rates);
       setFromCache(data.fromCache ?? false);
 
-      const currentRate = data.rates.find((r) => r.currency === currency);
-      if (currentRate?.source === 'guce') {
-        setRateSource(data.fromCache ? 'cache' : 'guce');
-      } else if (currentRate?.source === 'admin') {
-        setRateSource('admin');
-      } else {
-        setRateSource(data.fromCache ? 'cache' : null);
-      }
-
       const usdRates = data.rates.filter((r) => r.currency === 'USD');
       const eurRates = data.rates.filter((r) => r.currency === 'EUR');
       if (usdRates.length > 0) setCachedData('USD', usdRates);
@@ -121,7 +112,7 @@ export function useGuceRates(currency: GuceCurrency = 'USD') {
     } finally {
       setIsLoading(false);
     }
-  }, [currency]);
+  }, []);
 
   const clearError = useCallback(() => {
     setError(null);
@@ -142,6 +133,18 @@ export function useGuceRates(currency: GuceCurrency = 'USD') {
 
     fetchRates();
   }, [fetchRates]);
+
+  // Met à jour rateSource quand la devise sélectionnée ou les taux changent
+  useEffect(() => {
+    const currentRate = rates.find((r) => r.currency === currency);
+    if (currentRate?.source === 'guce') {
+      setRateSource('guce');
+    } else if (currentRate?.source === 'admin') {
+      setRateSource('admin');
+    } else if (rates.length > 0) {
+      setRateSource(fromCache ? 'cache' : null);
+    }
+  }, [currency, rates, fromCache]);
 
   return {
     rate,

@@ -28,12 +28,20 @@ export function getDefaultConfig(): ApiConfig {
   };
 }
 
+function normalizeMode(mode: unknown): 'sync' | 'async' {
+  return mode === 'sync' || mode === 'async' ? mode : DEFAULT_MODE;
+}
+
 function migrateStorage(): void {
   if (typeof window === 'undefined') return;
-  const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
-  if (legacy && !localStorage.getItem(STORAGE_KEY)) {
-    localStorage.setItem(STORAGE_KEY, legacy);
-    localStorage.removeItem(LEGACY_STORAGE_KEY);
+  try {
+    const legacy = window.localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (legacy && !window.localStorage.getItem(STORAGE_KEY)) {
+      window.localStorage.setItem(STORAGE_KEY, legacy);
+      window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+    }
+  } catch {
+    // Storage unavailable; continue with defaults.
   }
 }
 
@@ -46,14 +54,22 @@ export function getApiConfig(): ApiConfig {
 
   migrateStorage();
 
-  const stored = localStorage.getItem(STORAGE_KEY);
+  let stored: string | null = null;
+  try {
+    stored = window.localStorage.getItem(STORAGE_KEY);
+  } catch {
+    const defaults = getDefaultConfig();
+    configCache = defaults;
+    return defaults;
+  }
+
   if (stored) {
     try {
       const parsed = JSON.parse(stored) as ApiConfig;
       const result: ApiConfig = {
         baseUrl: parsed.baseUrl || DEFAULT_API_URL,
         apiKey: parsed.apiKey || DEFAULT_API_KEY,
-        defaultMode: parsed.defaultMode || DEFAULT_MODE,
+        defaultMode: normalizeMode(parsed.defaultMode),
       };
       configCache = result;
       return result;

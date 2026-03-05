@@ -36,8 +36,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   }
 
-  const body = await request.json();
-  const { currency, rate } = body as { currency: string; rate: number };
+  let body: { currency: string; rate: number };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { error: 'Corps de requête JSON invalide.' },
+      { status: 400 }
+    );
+  }
+  const { currency, rate } = body;
 
   if (!['USD', 'EUR'].includes(currency)) {
     return NextResponse.json(

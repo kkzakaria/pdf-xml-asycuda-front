@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
         currency: e.currency as GuceCurrency,
         rate: e.rate,
         validityDate: e.thursdayDate,
-        source: e.source as 'guce' | 'admin' | 'manual',
+        source: e.source as 'guce' | 'admin',
       }));
       if (currencyFilter) rates = rates.filter((r) => r.currency === currencyFilter);
       return NextResponse.json<GuceRatesResponse>({ success: true, rates, fromCache: true });
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
         currency: e.currency as GuceCurrency,
         rate: e.rate,
         validityDate: e.thursdayDate,
-        source: e.source as 'guce' | 'admin' | 'manual',
+        source: e.source as 'guce' | 'admin',
       }));
       if (currencyFilter) rates = rates.filter((r) => r.currency === currencyFilter);
       return NextResponse.json<GuceRatesResponse>({ success: true, rates, fromCache: true });
