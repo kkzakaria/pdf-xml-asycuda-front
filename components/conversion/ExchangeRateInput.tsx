@@ -64,7 +64,7 @@ export function ExchangeRateInput({
   onCurrencyChange,
   disabled = false,
 }: ExchangeRateInputProps) {
-  const { rate, rates, isLoading, error, fromCache, fetchRates } = useGuceRates(currency);
+  const { rate, rates, isLoading, error, fromCache, rateSource, fetchRates } = useGuceRates(currency);
 
   /**
    * Auto-remplir le champ quand le taux est charge
@@ -122,6 +122,15 @@ export function ExchangeRateInput({
   } else if (error && !value) {
     helpText = 'Saisie manuelle requise';
   }
+
+  const sourceBadge =
+    rateSource === 'guce'
+      ? { text: 'GUCE', className: 'bg-green-100 text-green-700' }
+      : rateSource === 'admin'
+      ? { text: 'Manuel admin', className: 'bg-orange-100 text-orange-700' }
+      : rateSource === 'cache'
+      ? { text: 'Cache', className: 'bg-yellow-100 text-yellow-700' }
+      : null;
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -196,7 +205,14 @@ export function ExchangeRateInput({
       </div>
 
       <div className="flex items-center justify-between">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">{helpText}</p>
+        <div className="flex items-center gap-2">
+          {sourceBadge && (
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${sourceBadge.className}`}>
+              {sourceBadge.text}
+            </span>
+          )}
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">{helpText}</p>
+        </div>
 
         {rate !== null && value && parseFloat(value) !== rate && (
           <button
