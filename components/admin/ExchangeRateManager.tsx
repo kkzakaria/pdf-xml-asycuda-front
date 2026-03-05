@@ -32,6 +32,7 @@ export function ExchangeRateManager() {
       const res = await fetch('/api/admin/rates');
       const json = await res.json();
       if (json.success) setData(json);
+      else setMessage({ text: json.error || 'Erreur de chargement des taux', type: 'error' });
     } catch {
       setMessage({ text: 'Erreur lors du chargement des taux', type: 'error' });
     } finally {
