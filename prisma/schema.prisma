@@ -28,4 +28,7 @@ model ExchangeRateCache {
   thursdayDate String   // "YYYY-MM-DD" du jeudi de référence
   fetchedAt    DateTime @default(now())
   setBy        String?  // userId si source = "admin"
+
+  @@unique([currency, thursdayDate, source])
+  @@index([currency, fetchedAt])
 }
