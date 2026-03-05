@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/auth/db";
+import { ExchangeRateManager } from "@/components/admin/ExchangeRateManager";
 
 export default async function AdminDashboard() {
   const [totalUsers, activeUsers, adminUsers, recentUsers] = await Promise.all([
@@ -24,6 +25,10 @@ export default async function AdminDashboard() {
       <h1 className="text-2xl font-bold text-gray-900 mb-8">
         Tableau de bord
       </h1>
+
+      <div className="mb-8">
+        <ExchangeRateManager />
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-sm p-6 border">
