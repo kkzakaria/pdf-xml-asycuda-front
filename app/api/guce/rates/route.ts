@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/auth';
 import { fetchGuceRates } from '@/lib/guce/fetchRates';
 import {
   getThursdayKey,
@@ -15,7 +16,16 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const currencyFilter = searchParams.get('currency')?.toUpperCase() as GuceCurrency | undefined;
-    const forceRefresh = searchParams.get('refresh') === 'true';
+    const requestedRefresh = searchParams.get('refresh') === 'true';
+
+    // Force refresh réservé aux admins
+    let forceRefresh = false;
+    if (requestedRefresh) {
+      const session = await auth();
+      if (session?.user?.role === 'admin') {
+        forceRefresh = true;
+      }
+    }
 
     const thursdayDate = getThursdayKey();
 
