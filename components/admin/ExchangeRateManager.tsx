@@ -46,7 +46,7 @@ export function ExchangeRateManager() {
 
   const handleSave = async (currency: GuceCurrency, rateStr: string) => {
     const rate = parseFloat(rateStr.replace(',', '.'));
-    if (isNaN(rate) || rate <= 0) {
+    if (!Number.isFinite(rate) || rate <= 0) {
       setMessage({ text: 'Taux invalide', type: 'error' });
       return;
     }
@@ -79,8 +79,11 @@ export function ExchangeRateManager() {
     try {
       const res = await fetch('/api/guce/rates?refresh=true');
       const json = await res.json();
-      if (json.success) {
+      if (json.success && !json.fromCache) {
         setMessage({ text: 'Taux GUCE mis à jour avec succès', type: 'success' });
+        await fetchAdminRates();
+      } else if (json.success && json.fromCache) {
+        setMessage({ text: 'Échec de la mise à jour GUCE — fallback cache utilisé', type: 'error' });
         await fetchAdminRates();
       } else {
         setMessage({ text: json.error || 'Échec de la mise à jour GUCE', type: 'error' });

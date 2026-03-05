@@ -136,12 +136,16 @@ export function useGuceRates(currency: GuceCurrency = 'USD') {
 
   // Met à jour rateSource quand la devise sélectionnée ou les taux changent
   useEffect(() => {
+    if (rates.length === 0) {
+      setRateSource(null);
+      return;
+    }
     const currentRate = rates.find((r) => r.currency === currency);
     if (currentRate?.source === 'guce') {
       setRateSource('guce');
     } else if (currentRate?.source === 'admin') {
       setRateSource('admin');
-    } else if (rates.length > 0) {
+    } else {
       setRateSource(fromCache ? 'cache' : null);
     }
   }, [currency, rates, fromCache]);

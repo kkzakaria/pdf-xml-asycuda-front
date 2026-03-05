@@ -15,16 +15,24 @@ const SUPPORTED_CURRENCIES: GuceCurrency[] = ['USD', 'EUR'];
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const currencyFilter = searchParams.get('currency')?.toUpperCase() as GuceCurrency | undefined;
+    const rawCurrency = searchParams.get('currency')?.toUpperCase();
+    const currencyFilter: GuceCurrency | undefined =
+      rawCurrency && (SUPPORTED_CURRENCIES as string[]).includes(rawCurrency)
+        ? (rawCurrency as GuceCurrency)
+        : undefined;
     const requestedRefresh = searchParams.get('refresh') === 'true';
 
     // Force refresh réservé aux admins
     let forceRefresh = false;
     if (requestedRefresh) {
       const session = await auth();
-      if (session?.user?.role === 'admin') {
-        forceRefresh = true;
+      if (!session?.user) {
+        return NextResponse.json({ success: false, rates: [], error: 'Non autorisé' }, { status: 401 });
       }
+      if (session.user.role !== 'admin') {
+        return NextResponse.json({ success: false, rates: [], error: 'Accès refusé' }, { status: 403 });
+      }
+      forceRefresh = true;
     }
 
     const thursdayDate = getThursdayKey();
@@ -102,11 +110,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('[GUCE API] Unexpected error:', error);
     return NextResponse.json<GuceRatesResponse>(
-      {
-        success: false,
-        rates: [],
-        error: `Erreur serveur: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
-      },
+      { success: false, rates: [], error: 'Erreur serveur.' },
       { status: 500 }
     );
   }
