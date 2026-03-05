@@ -18,6 +18,8 @@ export interface GuceExchangeRate {
   rate: number;
   /** Date de validite du taux */
   validityDate: string;
+  /** Source du taux */
+  source?: 'guce' | 'admin' | 'manual';
 }
 
 /**

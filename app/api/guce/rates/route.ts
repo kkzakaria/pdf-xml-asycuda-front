@@ -1,127 +1,117 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/auth';
 import { fetchGuceRates } from '@/lib/guce/fetchRates';
-import type { GuceRatesResponse, GuceExchangeRate } from '@/types/guce';
+import {
+  getThursdayKey,
+  getCachedRate,
+  getLatestCachedRate,
+  saveRateToCache,
+  shouldRetryFetch,
+} from '@/lib/guce/cache';
+import type { GuceRatesResponse, GuceCurrency } from '@/types/guce';
 
-/**
- * Cache en memoire pour les taux GUCE
- * Cle: date au format YYYY-MM-DD
- */
-interface CacheEntry {
-  rates: GuceExchangeRate[];
-  timestamp: number;
-}
+const SUPPORTED_CURRENCIES: GuceCurrency[] = ['USD', 'EUR'];
 
-const ratesCache = new Map<string, CacheEntry>();
-
-/**
- * Duree du cache en millisecondes (defaut: 30 minutes)
- */
-const CACHE_DURATION_MS = (parseInt(process.env.GUCE_RATE_CACHE_MINUTES || '30', 10) || 30) * 60 * 1000;
-
-/**
- * Formate une date en cle de cache YYYY-MM-DD
- */
-function getDateCacheKey(date: Date): string {
-  return date.toISOString().split('T')[0];
-}
-
-/**
- * GET /api/guce/rates
- *
- * Recupere les taux de change GUCE
- *
- * Query params:
- * - date: Date au format YYYY-MM-DD (defaut: aujourd'hui)
- * - currency: Filtre par devise (USD ou EUR)
- * - refresh: Si "true", force le rafraichissement du cache
- */
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const dateParam = searchParams.get('date');
-    const currencyFilter = searchParams.get('currency')?.toUpperCase();
-    const forceRefresh = searchParams.get('refresh') === 'true';
+    const rawCurrency = searchParams.get('currency')?.toUpperCase();
+    const currencyFilter: GuceCurrency | undefined =
+      rawCurrency && (SUPPORTED_CURRENCIES as string[]).includes(rawCurrency)
+        ? (rawCurrency as GuceCurrency)
+        : undefined;
+    const requestedRefresh = searchParams.get('refresh') === 'true';
 
-    // Parser la date ou utiliser aujourd'hui
-    let targetDate: Date;
-    if (dateParam) {
-      targetDate = new Date(dateParam);
-      if (isNaN(targetDate.getTime())) {
-        return NextResponse.json<GuceRatesResponse>(
-          {
-            success: false,
-            rates: [],
-            error: 'Format de date invalide. Utilisez YYYY-MM-DD.',
-          },
-          { status: 400 }
+    // Force refresh réservé aux admins
+    let forceRefresh = false;
+    if (requestedRefresh) {
+      const session = await auth();
+      if (!session?.user) {
+        return NextResponse.json({ success: false, rates: [], error: 'Non autorisé' }, { status: 401 });
+      }
+      if (session.user.role !== 'admin') {
+        return NextResponse.json({ success: false, rates: [], error: 'Accès refusé' }, { status: 403 });
+      }
+      forceRefresh = true;
+    }
+
+    const thursdayDate = getThursdayKey();
+
+    // 1. Chercher en DB pour le jeudi de référence
+    const cachedEntries = (
+      await Promise.all(SUPPORTED_CURRENCIES.map((c) => getCachedRate(c, thursdayDate)))
+    ).filter((e): e is NonNullable<typeof e> => e !== null);
+
+    const hasAllFromGuce = SUPPORTED_CURRENCIES.every((c) =>
+      cachedEntries.some((e) => e.currency === c && e.source === 'guce')
+    );
+
+    // 2. Cache complet depuis GUCE et pas de force refresh → retourner
+    if (!forceRefresh && hasAllFromGuce) {
+      let rates = cachedEntries.map((e) => ({
+        currency: e.currency as GuceCurrency,
+        rate: e.rate,
+        validityDate: e.thursdayDate,
+        source: e.source as 'guce' | 'admin',
+      }));
+      if (currencyFilter) rates = rates.filter((r) => r.currency === currencyFilter);
+      return NextResponse.json<GuceRatesResponse>({ success: true, rates, fromCache: true });
+    }
+
+    // 3. Tenter fetch GUCE si : force refresh OU (jeudi + retry autorisé)
+    const retryChecks = await Promise.all(
+      SUPPORTED_CURRENCIES.map((c) => shouldRetryFetch(c, thursdayDate))
+    );
+    const canFetch = forceRefresh || retryChecks.some(Boolean);
+
+    if (canFetch) {
+      try {
+        const fetched = await fetchGuceRates();
+        await Promise.all(
+          fetched.map((r) =>
+            saveRateToCache(r.currency as GuceCurrency, r.rate, 'guce', thursdayDate)
+          )
         );
-      }
-    } else {
-      targetDate = new Date();
-    }
-
-    const cacheKey = getDateCacheKey(targetDate);
-    let fromCache = false;
-
-    // Verifier le cache
-    const cached = ratesCache.get(cacheKey);
-    const now = Date.now();
-
-    if (!forceRefresh && cached && now - cached.timestamp < CACHE_DURATION_MS) {
-      fromCache = true;
-      let rates = cached.rates;
-
-      // Filtrer par devise si demande
-      if (currencyFilter && (currencyFilter === 'USD' || currencyFilter === 'EUR')) {
-        rates = rates.filter((r) => r.currency === currencyFilter);
-      }
-
-      return NextResponse.json<GuceRatesResponse>({
-        success: true,
-        rates,
-        fromCache: true,
-      });
-    }
-
-    // Fetch depuis GUCE
-    let rates = await fetchGuceRates(targetDate);
-
-    // Mettre en cache
-    ratesCache.set(cacheKey, {
-      rates,
-      timestamp: now,
-    });
-
-    // Nettoyer les vieilles entrees du cache (garder 7 jours max)
-    const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
-    for (const [key, entry] of ratesCache.entries()) {
-      if (entry.timestamp < sevenDaysAgo) {
-        ratesCache.delete(key);
+        let rates = fetched.map((r) => ({ ...r, source: 'guce' as const }));
+        if (currencyFilter) rates = rates.filter((r) => r.currency === currencyFilter);
+        return NextResponse.json<GuceRatesResponse>({ success: true, rates, fromCache: false });
+      } catch (fetchError) {
+        console.error('[GUCE API] Fetch from GUCE failed, falling back to DB:', fetchError);
       }
     }
 
-    // Filtrer par devise si demande
-    if (currencyFilter && (currencyFilter === 'USD' || currencyFilter === 'EUR')) {
-      rates = rates.filter((r) => r.currency === currencyFilter);
+    // 4. Fallback : meilleur cache disponible (jeudi courant admin OU dernier taux en DB)
+    const bestEntries = cachedEntries.length > 0
+      ? cachedEntries
+      : (await Promise.all(SUPPORTED_CURRENCIES.map((c) => getLatestCachedRate(c)))).filter(
+          (e): e is NonNullable<typeof e> => e !== null
+        );
+
+    if (bestEntries.length > 0) {
+      let rates = bestEntries.map((e) => ({
+        currency: e.currency as GuceCurrency,
+        rate: e.rate,
+        validityDate: e.thursdayDate,
+        source: e.source as 'guce' | 'admin',
+      }));
+      if (currencyFilter) rates = rates.filter((r) => r.currency === currencyFilter);
+      return NextResponse.json<GuceRatesResponse>({ success: true, rates, fromCache: true });
     }
 
-    return NextResponse.json<GuceRatesResponse>({
-      success: true,
-      rates,
-      fromCache,
-    });
-  } catch (error) {
-    console.error('[GUCE API] Error fetching rates:', error);
-
-    const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
-
+    // 5. Aucun taux disponible
     return NextResponse.json<GuceRatesResponse>(
       {
         success: false,
         rates: [],
-        error: `Impossible de recuperer les taux GUCE: ${errorMessage}`,
+        error: 'Aucun taux disponible. Contactez un administrateur pour saisir le taux manuellement.',
       },
-      { status: 502 }
+      { status: 503 }
+    );
+  } catch (error) {
+    console.error('[GUCE API] Unexpected error:', error);
+    return NextResponse.json<GuceRatesResponse>(
+      { success: false, rates: [], error: 'Erreur serveur.' },
+      { status: 500 }
     );
   }
 }

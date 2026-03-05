@@ -19,3 +19,16 @@ model User {
   updatedAt   DateTime  @updatedAt
   lastLoginAt DateTime?
 }
+
+model ExchangeRateCache {
+  id           String   @id @default(cuid())
+  currency     String   // "USD" | "EUR"
+  rate         Float
+  source       String   // "guce" | "admin"
+  thursdayDate String   // "YYYY-MM-DD" du jeudi de référence
+  fetchedAt    DateTime @default(now())
+  setBy        String?  // userId si source = "admin"
+
+  @@unique([currency, thursdayDate, source])
+  @@index([currency, fetchedAt])
+}
