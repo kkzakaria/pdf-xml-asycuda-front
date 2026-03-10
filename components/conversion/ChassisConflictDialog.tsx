@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/Button';
 import type { ChassisConflictData } from '@/types/api';
 
@@ -17,6 +18,13 @@ export function ChassisConflictDialog({
   onForce,
   onCancel,
 }: ChassisConflictDialogProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
   // Fermer avec Escape
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -32,7 +40,9 @@ export function ChassisConflictDialog({
     return () => { document.body.style.overflow = ''; };
   }, []);
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       role="dialog"
@@ -155,6 +165,7 @@ export function ChassisConflictDialog({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
