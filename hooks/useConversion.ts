@@ -160,6 +160,15 @@ export function useConversion(): UseConversionReturn {
       }
 
       if (status.status === 'failed') {
+        console.debug('[pollJobStatus] job failed, error:', status.error);
+        // Pour les conflits de châssis en mode async, tenter de récupérer le résultat
+        // qui devrait retourner 409 avec les données structurées du conflit
+        try {
+          await apiClient.getJobResult(jobId);
+        } catch (resultError) {
+          console.debug('[pollJobStatus] getJobResult threw:', resultError);
+          throw resultError;
+        }
         throw new Error(status.error || 'Échec de la conversion');
       }
 
@@ -203,7 +212,10 @@ export function useConversion(): UseConversionReturn {
         dispatch({ type: 'CONVERSION_SUCCESS', payload: { result, xmlBlob } });
       }
     } catch (error) {
+      console.debug('[useConversion] caught error:', error);
+      console.debug('[useConversion] is ChassisConflictApiError:', error instanceof ChassisConflictApiError);
       if (error instanceof ChassisConflictApiError) {
+        console.debug('[useConversion] dispatching CHASSIS_CONFLICT', error.data);
         dispatch({ type: 'CHASSIS_CONFLICT', payload: error.data });
       } else {
         dispatch({
