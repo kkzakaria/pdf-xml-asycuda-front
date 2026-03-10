@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect } from 'react';
-import { Button } from '@/components/ui/Button';
 import type { ChassisConflictData } from '@/types/api';
 
 interface ChassisConflictDialogProps {
@@ -31,6 +30,8 @@ export function ChassisConflictDialog({
   }, []);
 
   return (
+    <>
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     <div
       style={{
         position: 'fixed',
@@ -143,18 +144,54 @@ export function ChassisConflictDialog({
 
         {/* Actions */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', padding: '1.5rem', borderTop: '1px solid #e4e4e7' }}>
-          <Button variant="outline" onClick={onCancel} disabled={isForcing}>
-            Annuler
-          </Button>
-          <Button
-            onClick={onForce}
-            isLoading={isForcing}
-            style={{ backgroundColor: '#d97706', borderColor: '#d97706' }}
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isForcing}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: '1px solid #d4d4d8',
+              backgroundColor: '#ffffff',
+              color: '#18181b',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              cursor: isForcing ? 'not-allowed' : 'pointer',
+              opacity: isForcing ? 0.6 : 1,
+            }}
           >
+            Annuler
+          </button>
+          <button
+            type="button"
+            onClick={isForcing ? undefined : onForce}
+            disabled={isForcing}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              backgroundColor: isForcing ? '#f59e0b' : '#d97706',
+              color: '#ffffff',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              cursor: isForcing ? 'not-allowed' : 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              opacity: isForcing ? 0.8 : 1,
+            }}
+          >
+            {isForcing && (
+              <svg style={{ width: '1rem', height: '1rem', animation: 'spin 1s linear infinite' }} viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" style={{ opacity: 0.25 }} />
+                <path fill="currentColor" style={{ opacity: 0.75 }} d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+            )}
             {isForcing ? 'Retraitement en cours...' : 'Forcer le retraitement'}
-          </Button>
+          </button>
         </div>
       </div>
     </div>
+    </>
   );
 }
