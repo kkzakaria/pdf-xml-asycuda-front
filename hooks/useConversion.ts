@@ -42,7 +42,7 @@ function conversionReducer(
         result: null,
         xmlBlob: null,
         progress: 0,
-        chassisConflict: null,
+        // chassisConflict intentionnellement conservé pour garder le dialog ouvert pendant le forçage
       };
     case 'CHASSIS_CONFLICT':
       return {
@@ -67,6 +67,7 @@ function conversionReducer(
         result: action.payload.result,
         xmlBlob: action.payload.xmlBlob,
         progress: 100,
+        chassisConflict: null,
       };
     case 'CONVERSION_ERROR':
       return {
