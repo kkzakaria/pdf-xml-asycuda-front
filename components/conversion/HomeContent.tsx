@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Alert } from '@/components/ui/Alert';
 import { FileUploader } from '@/components/conversion/FileUploader';
 import { ConversionForm } from '@/components/conversion/ConversionForm';
+import { ChassisConflictDialog } from '@/components/conversion/ChassisConflictDialog';
 import { useApiConfig } from '@/hooks/useApiConfig';
 import { useConversion } from '@/hooks/useConversion';
 import type { ConversionMode } from '@/types/conversion';
@@ -98,6 +99,7 @@ export function HomeContent({ isAdmin }: HomeContentProps) {
     state.status === 'polling';
 
   const isChassisConflict = state.status === 'chassis_conflict' && state.chassisConflict !== null;
+  const isForcing = state.status === 'converting' || state.status === 'polling';
 
   if (configLoading) {
     return (
@@ -131,78 +133,12 @@ export function HomeContent({ isAdmin }: HomeContentProps) {
       )}
 
       {isChassisConflict && state.chassisConflict && (
-        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
-          <div className="flex items-start gap-3">
-            <svg
-              className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
-              />
-            </svg>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-amber-800 dark:text-amber-300">
-                Châssis déjà enregistré
-              </h3>
-              <p className="mt-1 text-sm text-amber-700 dark:text-amber-400">
-                {state.chassisConflict.detail}
-              </p>
-              <div className="mt-3 flex flex-col gap-2">
-                {state.chassisConflict.duplicates.map((entry) => (
-                  <div
-                    key={entry.chassis_number}
-                    className="rounded-md border border-amber-200 bg-white px-3 py-2 text-xs dark:border-amber-700 dark:bg-amber-900/30"
-                  >
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                      <span className="text-amber-600 dark:text-amber-400">Châssis :</span>
-                      <span className="font-mono font-medium text-amber-900 dark:text-amber-200">
-                        {entry.chassis_number}
-                      </span>
-                      <span className="text-amber-600 dark:text-amber-400">Fichier source :</span>
-                      <span className="truncate text-amber-900 dark:text-amber-200">
-                        {entry.first_filename}
-                      </span>
-                      <span className="text-amber-600 dark:text-amber-400">Première vue :</span>
-                      <span className="text-amber-900 dark:text-amber-200">
-                        {new Date(entry.first_seen_date).toLocaleString('fr-FR')}
-                      </span>
-                      {entry.first_rfcv_number && (
-                        <>
-                          <span className="text-amber-600 dark:text-amber-400">N° RFCV :</span>
-                          <span className="font-mono text-amber-900 dark:text-amber-200">
-                            {entry.first_rfcv_number}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button
-                  onClick={forceReprocess}
-                  className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-600"
-                >
-                  Forcer le retraitement
-                </button>
-                <button
-                  onClick={handleReset}
-                  className="rounded-lg border border-amber-300 bg-white px-4 py-2 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-50 dark:border-amber-700 dark:bg-transparent dark:text-amber-400 dark:hover:bg-amber-900/30"
-                >
-                  Annuler
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ChassisConflictDialog
+          conflict={state.chassisConflict}
+          isForcing={isForcing}
+          onForce={forceReprocess}
+          onCancel={handleReset}
+        />
       )}
 
       {state.status === 'completed' && state.result ? (
