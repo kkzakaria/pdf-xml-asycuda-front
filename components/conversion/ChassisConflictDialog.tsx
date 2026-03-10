@@ -97,40 +97,48 @@ export function ChassisConflictDialog({
 
         {/* Liste des doublons */}
         <div style={{ padding: '1.5rem', maxHeight: '16rem', overflowY: 'auto' }}>
-          <p style={{ margin: '0 0 0.75rem', fontSize: '0.875rem', fontWeight: 500, color: '#3f3f46' }}>
-            {conflict.duplicates.length === 1 ? '1 doublon détecté' : `${conflict.duplicates.length} doublons détectés`}
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {conflict.duplicates.map((entry) => (
-              <div
-                key={entry.chassis_number}
-                style={{ border: '1px solid #fcd34d', borderRadius: '0.5rem', backgroundColor: '#fffbeb', padding: '1rem' }}
-              >
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-                  <tbody>
-                    <tr>
-                      <td style={{ paddingBottom: '0.375rem', paddingRight: '0.75rem', color: '#b45309', whiteSpace: 'nowrap' }}>Châssis</td>
-                      <td style={{ paddingBottom: '0.375rem', fontFamily: 'monospace', fontWeight: 700, color: '#18181b', wordBreak: 'break-all' }}>{entry.chassis_number}</td>
-                    </tr>
-                    <tr>
-                      <td style={{ paddingBottom: '0.375rem', paddingRight: '0.75rem', color: '#b45309', whiteSpace: 'nowrap' }}>Fichier source</td>
-                      <td style={{ paddingBottom: '0.375rem', color: '#3f3f46', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '16rem' }}>{entry.first_filename}</td>
-                    </tr>
-                    <tr>
-                      <td style={{ paddingBottom: '0.375rem', paddingRight: '0.75rem', color: '#b45309', whiteSpace: 'nowrap' }}>Première détection</td>
-                      <td style={{ paddingBottom: '0.375rem', color: '#3f3f46' }}>{new Date(entry.first_seen_date).toLocaleString('fr-FR')}</td>
-                    </tr>
-                    {entry.first_rfcv_number && (
-                      <tr>
-                        <td style={{ paddingRight: '0.75rem', color: '#b45309', whiteSpace: 'nowrap' }}>N° RFCV</td>
-                        <td style={{ fontFamily: 'monospace', color: '#3f3f46' }}>{entry.first_rfcv_number}</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+          {conflict.duplicates.length === 0 ? (
+            <div style={{ border: '1px solid #fcd34d', borderRadius: '0.5rem', backgroundColor: '#fffbeb', padding: '1rem', fontSize: '0.875rem', color: '#b45309' }}>
+              Un ou plusieurs châssis de ce fichier ont déjà été traités. Forcez le retraitement pour les écraser.
+            </div>
+          ) : (
+            <>
+              <p style={{ margin: '0 0 0.75rem', fontSize: '0.875rem', fontWeight: 500, color: '#3f3f46' }}>
+                {conflict.duplicates.length === 1 ? '1 doublon détecté' : `${conflict.duplicates.length} doublons détectés`}
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {conflict.duplicates.map((entry) => (
+                  <div
+                    key={entry.chassis_number}
+                    style={{ border: '1px solid #fcd34d', borderRadius: '0.5rem', backgroundColor: '#fffbeb', padding: '1rem' }}
+                  >
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                      <tbody>
+                        <tr>
+                          <td style={{ paddingBottom: '0.375rem', paddingRight: '0.75rem', color: '#b45309', whiteSpace: 'nowrap' }}>Châssis</td>
+                          <td style={{ paddingBottom: '0.375rem', fontFamily: 'monospace', fontWeight: 700, color: '#18181b', wordBreak: 'break-all' }}>{entry.chassis_number}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ paddingBottom: '0.375rem', paddingRight: '0.75rem', color: '#b45309', whiteSpace: 'nowrap' }}>Fichier source</td>
+                          <td style={{ paddingBottom: '0.375rem', color: '#3f3f46', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '16rem' }}>{entry.first_filename}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ paddingBottom: '0.375rem', paddingRight: '0.75rem', color: '#b45309', whiteSpace: 'nowrap' }}>Première détection</td>
+                          <td style={{ paddingBottom: '0.375rem', color: '#3f3f46' }}>{new Date(entry.first_seen_date).toLocaleString('fr-FR')}</td>
+                        </tr>
+                        {entry.first_rfcv_number && (
+                          <tr>
+                            <td style={{ paddingRight: '0.75rem', color: '#b45309', whiteSpace: 'nowrap' }}>N° RFCV</td>
+                            <td style={{ fontFamily: 'monospace', color: '#3f3f46' }}>{entry.first_rfcv_number}</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          )}
         </div>
 
         {/* Actions */}

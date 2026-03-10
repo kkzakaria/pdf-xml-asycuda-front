@@ -161,15 +161,20 @@ export function useConversion(): UseConversionReturn {
 
       if (status.status === 'failed') {
         console.debug('[pollJobStatus] job failed, error:', status.error);
-        // Pour les conflits de châssis en mode async, tenter de récupérer le résultat
-        // qui devrait retourner 409 avec les données structurées du conflit
-        try {
-          await apiClient.getJobResult(jobId);
-        } catch (resultError) {
-          console.debug('[pollJobStatus] getJobResult threw:', resultError);
-          throw resultError;
+        const errorMsg = status.error || 'Échec de la conversion';
+        // En mode async, les conflits de châssis remontent comme un job échoué.
+        // L'endpoint /result retourne 400 (job non terminé), donc on détecte
+        // le conflit depuis le message d'erreur du job.
+        if (errorMsg.toLowerCase().includes('doublon') || errorMsg.toLowerCase().includes('chassis')) {
+          throw new ChassisConflictApiError({
+            success: false,
+            error: 'duplicate_chassis',
+            detail: errorMsg,
+            duplicates: [],
+            hint: 'Relancer avec force_reprocess=true pour forcer le retraitement',
+          });
         }
-        throw new Error(status.error || 'Échec de la conversion');
+        throw new Error(errorMsg);
       }
 
       await new Promise((resolve) => setTimeout(resolve, pollInterval));
