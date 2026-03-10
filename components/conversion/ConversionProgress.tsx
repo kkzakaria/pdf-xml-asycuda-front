@@ -17,6 +17,7 @@ const statusMessages: Record<ConversionStatus, string> = {
   polling: 'Traitement en cours...',
   completed: 'Conversion terminée !',
   error: 'Échec de la conversion',
+  chassis_conflict: 'Châssis déjà enregistré',
 };
 
 export function ConversionProgress({

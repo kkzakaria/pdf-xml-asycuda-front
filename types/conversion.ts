@@ -1,6 +1,6 @@
 // Conversion State Types
 
-import type { ConversionResult, JobStatus } from './api';
+import type { ConversionResult, JobStatus, ChassisConflictData } from './api';
 
 export type ConversionMode = 'sync' | 'async';
 
@@ -10,7 +10,8 @@ export type ConversionStatus =
   | 'converting'
   | 'polling'
   | 'completed'
-  | 'error';
+  | 'error'
+  | 'chassis_conflict';
 
 export interface ConversionState {
   status: ConversionStatus;
@@ -23,6 +24,7 @@ export interface ConversionState {
   xmlBlob: Blob | null;
   error: string | null;
   progress: number;
+  chassisConflict: ChassisConflictData | null;
 }
 
 export interface ConversionFormData {
@@ -42,6 +44,7 @@ export type ConversionAction =
   | { type: 'UPDATE_PROGRESS'; payload: number }
   | { type: 'CONVERSION_SUCCESS'; payload: { result: ConversionResult; xmlBlob: Blob | null } }
   | { type: 'CONVERSION_ERROR'; payload: string }
+  | { type: 'CHASSIS_CONFLICT'; payload: ChassisConflictData }
   | { type: 'RESET' };
 
 export interface JobPollingState {

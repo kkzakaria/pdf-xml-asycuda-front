@@ -4,10 +4,18 @@ import type {
   ApiConfig,
   ApiError,
   AsyncConversionResponse,
+  ChassisConflictData,
   ConversionResult,
   JobResultResponse,
   JobStatus,
 } from '@/types/api';
+
+export class ChassisConflictApiError extends Error {
+  constructor(public readonly data: ChassisConflictData) {
+    super(data.detail);
+    this.name = 'ChassisConflictApiError';
+  }
+}
 
 const STORAGE_KEY = 'pdf-xml-asycuda-config-v2';
 const LEGACY_STORAGE_KEY = 'pdf-xml-asycuda-config';
@@ -103,6 +111,10 @@ export function getDefaultMode(): 'sync' | 'async' {
 class ApiClient {
   private async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
+      if (response.status === 409) {
+        const conflictData = await response.json() as ChassisConflictData;
+        throw new ChassisConflictApiError(conflictData);
+      }
       let errorMessage = `HTTP ${response.status}`;
       try {
         const errorData = await response.json() as ApiError;
@@ -118,7 +130,8 @@ class ApiClient {
   async convertSync(
     pdfFile: File,
     tauxDouane: number,
-    rapportPaiement?: string | null
+    rapportPaiement?: string | null,
+    forceReprocess = false
   ): Promise<ConversionResult> {
     const formData = new FormData();
     formData.append('file', pdfFile);
@@ -128,7 +141,8 @@ class ApiClient {
       formData.append('rapport_paiement', rapportPaiement);
     }
 
-    const response = await fetch('/api/convert', {
+    const url = forceReprocess ? '/api/convert?force_reprocess=true' : '/api/convert';
+    const response = await fetch(url, {
       method: 'POST',
       body: formData,
     });
@@ -139,7 +153,8 @@ class ApiClient {
   async convertAsync(
     pdfFile: File,
     tauxDouane: number,
-    rapportPaiement?: string | null
+    rapportPaiement?: string | null,
+    forceReprocess = false
   ): Promise<AsyncConversionResponse> {
     const formData = new FormData();
     formData.append('file', pdfFile);
@@ -149,7 +164,8 @@ class ApiClient {
       formData.append('rapport_paiement', rapportPaiement);
     }
 
-    const response = await fetch('/api/convert/async', {
+    const url = forceReprocess ? '/api/convert/async?force_reprocess=true' : '/api/convert/async';
+    const response = await fetch(url, {
       method: 'POST',
       body: formData,
     });

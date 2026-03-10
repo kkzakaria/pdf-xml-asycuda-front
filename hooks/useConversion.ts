@@ -3,7 +3,7 @@
 import { useReducer, useCallback } from 'react';
 import type { ConversionState, ConversionAction, ConversionMode } from '@/types/conversion';
 import type { ConversionResult } from '@/types/api';
-import { apiClient } from '@/lib/api/client';
+import { apiClient, ChassisConflictApiError } from '@/lib/api/client';
 
 const initialState: ConversionState = {
   status: 'idle',
@@ -16,6 +16,7 @@ const initialState: ConversionState = {
   xmlBlob: null,
   error: null,
   progress: 0,
+  chassisConflict: null,
 };
 
 function conversionReducer(
@@ -40,6 +41,14 @@ function conversionReducer(
         error: null,
         result: null,
         xmlBlob: null,
+        progress: 0,
+        chassisConflict: null,
+      };
+    case 'CHASSIS_CONFLICT':
+      return {
+        ...state,
+        status: 'chassis_conflict',
+        chassisConflict: action.payload,
         progress: 0,
       };
     case 'START_POLLING':
@@ -67,7 +76,7 @@ function conversionReducer(
         progress: 0,
       };
     case 'RESET':
-      return initialState;
+      return { ...initialState, mode: state.mode };
     default:
       return state;
   }
@@ -81,6 +90,7 @@ interface UseConversionReturn {
   setTauxDouane: (rate: number) => void;
   setRapportPaiement: (value: string) => void;
   startConversion: () => Promise<void>;
+  forceReprocess: () => Promise<void>;
   reset: () => void;
   downloadResult: () => void;
 }
@@ -158,7 +168,7 @@ export function useConversion(): UseConversionReturn {
     throw new Error('Délai de conversion dépassé');
   }, [downloadXmlImmediately]);
 
-  const startConversion = useCallback(async () => {
+  const runConversion = useCallback(async (forceReprocess = false) => {
     if (!state.file || state.tauxDouane <= 0) {
       dispatch({
         type: 'CONVERSION_ERROR',
@@ -174,16 +184,17 @@ export function useConversion(): UseConversionReturn {
         const result = await apiClient.convertSync(
           state.file,
           state.tauxDouane,
-          state.rapportPaiement || null
+          state.rapportPaiement || null,
+          forceReprocess
         );
-        // Download XML immediately after sync conversion
         const xmlBlob = await downloadXmlImmediately(result.job_id);
         dispatch({ type: 'CONVERSION_SUCCESS', payload: { result, xmlBlob } });
       } else {
         const response = await apiClient.convertAsync(
           state.file,
           state.tauxDouane,
-          state.rapportPaiement || null
+          state.rapportPaiement || null,
+          forceReprocess
         );
         dispatch({ type: 'START_POLLING', payload: response.job_id });
 
@@ -191,12 +202,20 @@ export function useConversion(): UseConversionReturn {
         dispatch({ type: 'CONVERSION_SUCCESS', payload: { result, xmlBlob } });
       }
     } catch (error) {
-      dispatch({
-        type: 'CONVERSION_ERROR',
-        payload: error instanceof Error ? error.message : 'Erreur inconnue',
-      });
+      if (error instanceof ChassisConflictApiError) {
+        dispatch({ type: 'CHASSIS_CONFLICT', payload: error.data });
+      } else {
+        dispatch({
+          type: 'CONVERSION_ERROR',
+          payload: error instanceof Error ? error.message : 'Erreur inconnue',
+        });
+      }
     }
   }, [state.file, state.tauxDouane, state.rapportPaiement, state.mode, pollJobStatus, downloadXmlImmediately]);
+
+  const startConversion = useCallback(() => runConversion(false), [runConversion]);
+
+  const forceReprocess = useCallback(() => runConversion(true), [runConversion]);
 
   const reset = useCallback(() => {
     dispatch({ type: 'RESET' });
@@ -250,6 +269,7 @@ export function useConversion(): UseConversionReturn {
     setTauxDouane,
     setRapportPaiement,
     startConversion,
+    forceReprocess,
     reset,
     downloadResult,
   };

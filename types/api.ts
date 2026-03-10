@@ -57,6 +57,21 @@ export interface ApiError {
   status_code?: number;
 }
 
+export interface ChassisConflictEntry {
+  chassis_number: string;
+  first_seen_date: string;
+  first_filename: string;
+  first_rfcv_number: string | null;
+}
+
+export interface ChassisConflictData {
+  success: false;
+  error: 'duplicate_chassis';
+  detail: string;
+  duplicates: ChassisConflictEntry[];
+  hint: string;
+}
+
 export interface ConversionParams {
   taux_douane: number;
   rapport_paiement?: string | null;
