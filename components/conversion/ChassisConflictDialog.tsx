@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/Button';
 import type { ChassisConflictData } from '@/types/api';
 
@@ -18,145 +17,136 @@ export function ChassisConflictDialog({
   onForce,
   onCancel,
 }: ChassisConflictDialogProps) {
-  // Fermer avec Escape
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCancel();
+      if (e.key === 'Escape' && !isForcing) onCancel();
     };
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
-  }, [onCancel]);
+  }, [onCancel, isForcing]);
 
-  // Bloquer le scroll du body
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
   }, []);
 
-  return createPortal(
+  return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '1rem',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+      }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="chassis-dialog-title"
     >
-      {/* Backdrop */}
+      {/* Backdrop cliquable */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onCancel}
+        style={{ position: 'absolute', inset: 0 }}
+        onClick={isForcing ? undefined : onCancel}
         aria-hidden="true"
       />
 
-      {/* Dialog */}
-      <div className="relative w-full max-w-lg rounded-xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-700 dark:bg-zinc-900">
+      {/* Boite du dialog */}
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          maxWidth: '32rem',
+          backgroundColor: 'white',
+          borderRadius: '0.75rem',
+          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+          border: '1px solid #e4e4e7',
+          overflow: 'hidden',
+        }}
+      >
         {/* Header */}
-        <div className="flex items-start gap-4 border-b border-zinc-200 p-6 dark:border-zinc-700">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/40">
-            <svg
-              className="h-5 w-5 text-amber-600 dark:text-amber-400"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
-              />
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', padding: '1.5rem', borderBottom: '1px solid #e4e4e7' }}>
+          <div style={{ flexShrink: 0, width: '2.5rem', height: '2.5rem', borderRadius: '9999px', backgroundColor: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#d97706" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
             </svg>
           </div>
-          <div className="flex-1 min-w-0">
-            <h2
-              id="chassis-dialog-title"
-              className="text-lg font-semibold text-zinc-900 dark:text-zinc-100"
-            >
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h2 id="chassis-dialog-title" style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, color: '#18181b' }}>
               Châssis déjà enregistré
             </h2>
-            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+            <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: '#71717a' }}>
               {conflict.detail}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded-lg p-1 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
-            aria-label="Fermer"
-          >
-            <svg
-              className="h-5 w-5"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
+          {!isForcing && (
+            <button
+              type="button"
+              onClick={onCancel}
+              style={{ padding: '0.25rem', borderRadius: '0.5rem', border: 'none', background: 'none', cursor: 'pointer', color: '#a1a1aa' }}
+              aria-label="Fermer"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
         </div>
 
         {/* Liste des doublons */}
-        <div className="max-h-64 overflow-y-auto p-6">
-          <p className="mb-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-            {conflict.duplicates.length === 1
-              ? '1 doublon détecté'
-              : `${conflict.duplicates.length} doublons détectés`}
+        <div style={{ padding: '1.5rem', maxHeight: '16rem', overflowY: 'auto' }}>
+          <p style={{ margin: '0 0 0.75rem', fontSize: '0.875rem', fontWeight: 500, color: '#3f3f46' }}>
+            {conflict.duplicates.length === 1 ? '1 doublon détecté' : `${conflict.duplicates.length} doublons détectés`}
           </p>
-          <div className="flex flex-col gap-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {conflict.duplicates.map((entry) => (
               <div
                 key={entry.chassis_number}
-                className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20"
+                style={{ border: '1px solid #fcd34d', borderRadius: '0.5rem', backgroundColor: '#fffbeb', padding: '1rem' }}
               >
-                <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm">
-                  <span className="text-amber-600 dark:text-amber-400">Châssis</span>
-                  <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100 break-all">
-                    {entry.chassis_number}
-                  </span>
-
-                  <span className="text-amber-600 dark:text-amber-400">Fichier source</span>
-                  <span className="truncate text-zinc-700 dark:text-zinc-300">
-                    {entry.first_filename}
-                  </span>
-
-                  <span className="text-amber-600 dark:text-amber-400">Première détection</span>
-                  <span className="text-zinc-700 dark:text-zinc-300">
-                    {new Date(entry.first_seen_date).toLocaleString('fr-FR')}
-                  </span>
-
-                  {entry.first_rfcv_number && (
-                    <>
-                      <span className="text-amber-600 dark:text-amber-400">N° RFCV</span>
-                      <span className="font-mono text-zinc-700 dark:text-zinc-300">
-                        {entry.first_rfcv_number}
-                      </span>
-                    </>
-                  )}
-                </div>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                  <tbody>
+                    <tr>
+                      <td style={{ paddingBottom: '0.375rem', paddingRight: '0.75rem', color: '#b45309', whiteSpace: 'nowrap' }}>Châssis</td>
+                      <td style={{ paddingBottom: '0.375rem', fontFamily: 'monospace', fontWeight: 700, color: '#18181b', wordBreak: 'break-all' }}>{entry.chassis_number}</td>
+                    </tr>
+                    <tr>
+                      <td style={{ paddingBottom: '0.375rem', paddingRight: '0.75rem', color: '#b45309', whiteSpace: 'nowrap' }}>Fichier source</td>
+                      <td style={{ paddingBottom: '0.375rem', color: '#3f3f46', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '16rem' }}>{entry.first_filename}</td>
+                    </tr>
+                    <tr>
+                      <td style={{ paddingBottom: '0.375rem', paddingRight: '0.75rem', color: '#b45309', whiteSpace: 'nowrap' }}>Première détection</td>
+                      <td style={{ paddingBottom: '0.375rem', color: '#3f3f46' }}>{new Date(entry.first_seen_date).toLocaleString('fr-FR')}</td>
+                    </tr>
+                    {entry.first_rfcv_number && (
+                      <tr>
+                        <td style={{ paddingRight: '0.75rem', color: '#b45309', whiteSpace: 'nowrap' }}>N° RFCV</td>
+                        <td style={{ fontFamily: 'monospace', color: '#3f3f46' }}>{entry.first_rfcv_number}</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Footer actions */}
-        <div className="flex flex-col-reverse gap-2 border-t border-zinc-200 p-6 dark:border-zinc-700 sm:flex-row sm:justify-end">
+        {/* Actions */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', padding: '1.5rem', borderTop: '1px solid #e4e4e7' }}>
           <Button variant="outline" onClick={onCancel} disabled={isForcing}>
             Annuler
           </Button>
           <Button
-            variant="primary"
             onClick={onForce}
             isLoading={isForcing}
-            className="bg-amber-600 hover:bg-amber-700 focus:ring-amber-500"
+            style={{ backgroundColor: '#d97706', borderColor: '#d97706' }}
           >
             {isForcing ? 'Retraitement en cours...' : 'Forcer le retraitement'}
           </Button>
         </div>
       </div>
-    </div>,
-    document.body
+    </div>
   );
 }
