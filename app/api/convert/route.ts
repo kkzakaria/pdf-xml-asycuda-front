@@ -8,6 +8,8 @@ import { getBackendUrl, getBackendHeaders } from '@/lib/api/proxy';
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
+    const forceReprocess = request.headers.get('X-Force-Reprocess') === 'true';
+    if (forceReprocess) formData.append('force_reprocess', 'true');
 
     const response = await fetch(getBackendUrl('/api/v1/convert'), {
       method: 'POST',

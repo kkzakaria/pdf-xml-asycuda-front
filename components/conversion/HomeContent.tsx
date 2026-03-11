@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Alert } from '@/components/ui/Alert';
 import { FileUploader } from '@/components/conversion/FileUploader';
 import { ConversionForm } from '@/components/conversion/ConversionForm';
+import { ChassisConflictDialog } from '@/components/conversion/ChassisConflictDialog';
 import { useApiConfig } from '@/hooks/useApiConfig';
 import { useConversion } from '@/hooks/useConversion';
 import type { ConversionMode } from '@/types/conversion';
@@ -34,6 +35,8 @@ export function HomeContent({ isAdmin }: HomeContentProps) {
     setTauxDouane,
     setRapportPaiement,
     startConversion,
+    forceReprocess,
+    dismissConflict,
     reset,
     downloadResult,
   } = useConversion();
@@ -85,6 +88,11 @@ export function HomeContent({ isAdmin }: HomeContentProps) {
     setSelectedCurrency('USD');
   }, [reset, setMode, defaultMode]);
 
+  const handleDismissConflict = useCallback(() => {
+    dismissConflict();
+    setRapportPaiementInput('');
+  }, [dismissConflict]);
+
   useEffect(() => {
     if (state.status === 'completed' || state.status === 'error') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -95,6 +103,8 @@ export function HomeContent({ isAdmin }: HomeContentProps) {
     state.status === 'uploading' ||
     state.status === 'converting' ||
     state.status === 'polling';
+
+  const showChassisDialog = state.status === 'chassis_conflict' && state.chassisConflict !== null;
 
   if (configLoading) {
     return (
@@ -125,6 +135,14 @@ export function HomeContent({ isAdmin }: HomeContentProps) {
         >
           {state.error}
         </Alert>
+      )}
+
+      {showChassisDialog && state.chassisConflict && (
+        <ChassisConflictDialog
+          conflict={state.chassisConflict}
+          onForce={forceReprocess}
+          onCancel={handleDismissConflict}
+        />
       )}
 
       {state.status === 'completed' && state.result ? (
