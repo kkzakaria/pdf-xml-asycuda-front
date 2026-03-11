@@ -141,8 +141,8 @@ class ApiClient {
       formData.append('rapport_paiement', rapportPaiement);
     }
 
-    const url = forceReprocess ? '/api/convert?force_reprocess=true' : '/api/convert';
-    const response = await fetch(url, {
+    if (forceReprocess) formData.append('_force_reprocess', 'true');
+    const response = await fetch('/api/convert', {
       method: 'POST',
       body: formData,
     });
@@ -164,8 +164,8 @@ class ApiClient {
       formData.append('rapport_paiement', rapportPaiement);
     }
 
-    const url = forceReprocess ? '/api/convert/async?force_reprocess=true' : '/api/convert/async';
-    const response = await fetch(url, {
+    if (forceReprocess) formData.append('_force_reprocess', 'true');
+    const response = await fetch('/api/convert/async', {
       method: 'POST',
       body: formData,
     });
