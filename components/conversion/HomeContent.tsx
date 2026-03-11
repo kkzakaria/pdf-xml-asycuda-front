@@ -88,6 +88,11 @@ export function HomeContent({ isAdmin }: HomeContentProps) {
     setSelectedCurrency('USD');
   }, [reset, setMode, defaultMode]);
 
+  const handleDismissConflict = useCallback(() => {
+    dismissConflict();
+    setRapportPaiementInput('');
+  }, [dismissConflict]);
+
   useEffect(() => {
     if (state.status === 'completed' || state.status === 'error') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -136,7 +141,7 @@ export function HomeContent({ isAdmin }: HomeContentProps) {
         <ChassisConflictDialog
           conflict={state.chassisConflict}
           onForce={forceReprocess}
-          onCancel={dismissConflict}
+          onCancel={handleDismissConflict}
         />
       )}
 

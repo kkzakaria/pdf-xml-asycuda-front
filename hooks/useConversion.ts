@@ -80,6 +80,7 @@ function conversionReducer(
       return {
         ...state,
         status: 'idle',
+        file: null,
         chassisConflict: null,
         error: null,
         progress: 0,
