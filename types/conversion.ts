@@ -45,6 +45,7 @@ export type ConversionAction =
   | { type: 'CONVERSION_SUCCESS'; payload: { result: ConversionResult; xmlBlob: Blob | null } }
   | { type: 'CONVERSION_ERROR'; payload: string }
   | { type: 'CHASSIS_CONFLICT'; payload: ChassisConflictData }
+  | { type: 'DISMISS_CONFLICT' }
   | { type: 'RESET' };
 
 export interface JobPollingState {

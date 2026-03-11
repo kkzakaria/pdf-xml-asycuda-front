@@ -76,6 +76,14 @@ function conversionReducer(
         error: action.payload,
         progress: 0,
       };
+    case 'DISMISS_CONFLICT':
+      return {
+        ...state,
+        status: 'idle',
+        chassisConflict: null,
+        error: null,
+        progress: 0,
+      };
     case 'RESET':
       return { ...initialState, mode: state.mode };
     default:
@@ -92,6 +100,7 @@ interface UseConversionReturn {
   setRapportPaiement: (value: string) => void;
   startConversion: () => Promise<void>;
   forceReprocess: () => Promise<void>;
+  dismissConflict: () => void;
   reset: () => void;
   downloadResult: () => void;
 }
@@ -227,6 +236,10 @@ export function useConversion(): UseConversionReturn {
 
   const forceReprocess = useCallback(() => runConversion(true), [runConversion]);
 
+  const dismissConflict = useCallback(() => {
+    dispatch({ type: 'DISMISS_CONFLICT' });
+  }, []);
+
   const reset = useCallback(() => {
     dispatch({ type: 'RESET' });
   }, []);
@@ -280,6 +293,7 @@ export function useConversion(): UseConversionReturn {
     setRapportPaiement,
     startConversion,
     forceReprocess,
+    dismissConflict,
     reset,
     downloadResult,
   };

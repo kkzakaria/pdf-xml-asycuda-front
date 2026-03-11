@@ -141,9 +141,9 @@ class ApiClient {
       formData.append('rapport_paiement', rapportPaiement);
     }
 
-    if (forceReprocess) formData.append('_force_reprocess', 'true');
     const response = await fetch('/api/convert', {
       method: 'POST',
+      headers: forceReprocess ? { 'X-Force-Reprocess': 'true' } : {},
       body: formData,
     });
 
@@ -164,9 +164,9 @@ class ApiClient {
       formData.append('rapport_paiement', rapportPaiement);
     }
 
-    if (forceReprocess) formData.append('_force_reprocess', 'true');
     const response = await fetch('/api/convert/async', {
       method: 'POST',
+      headers: forceReprocess ? { 'X-Force-Reprocess': 'true' } : {},
       body: formData,
     });
 

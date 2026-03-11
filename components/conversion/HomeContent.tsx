@@ -36,6 +36,7 @@ export function HomeContent({ isAdmin }: HomeContentProps) {
     setRapportPaiement,
     startConversion,
     forceReprocess,
+    dismissConflict,
     reset,
     downloadResult,
   } = useConversion();
@@ -135,7 +136,7 @@ export function HomeContent({ isAdmin }: HomeContentProps) {
         <ChassisConflictDialog
           conflict={state.chassisConflict}
           onForce={forceReprocess}
-          onCancel={handleReset}
+          onCancel={dismissConflict}
         />
       )}
 
