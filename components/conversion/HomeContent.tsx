@@ -98,12 +98,7 @@ export function HomeContent({ isAdmin }: HomeContentProps) {
     state.status === 'converting' ||
     state.status === 'polling';
 
-  // Garder le dialog ouvert pendant le forçage (status passe à converting/polling)
-  const showChassisDialog =
-    state.chassisConflict !== null &&
-    (state.status === 'chassis_conflict' || state.status === 'converting' || state.status === 'polling');
-
-  const isForcing = state.status === 'converting' || state.status === 'polling';
+  const showChassisDialog = state.status === 'chassis_conflict' && state.chassisConflict !== null;
 
   if (configLoading) {
     return (
@@ -139,7 +134,6 @@ export function HomeContent({ isAdmin }: HomeContentProps) {
       {showChassisDialog && state.chassisConflict && (
         <ChassisConflictDialog
           conflict={state.chassisConflict}
-          isForcing={isForcing}
           onForce={forceReprocess}
           onCancel={handleReset}
         />

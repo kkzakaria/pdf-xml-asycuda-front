@@ -5,24 +5,22 @@ import type { ChassisConflictData } from '@/types/api';
 
 interface ChassisConflictDialogProps {
   conflict: ChassisConflictData;
-  isForcing: boolean;
   onForce: () => void;
   onCancel: () => void;
 }
 
 export function ChassisConflictDialog({
   conflict,
-  isForcing,
   onForce,
   onCancel,
 }: ChassisConflictDialogProps) {
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !isForcing) onCancel();
+      if (e.key === 'Escape') onCancel();
     };
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
-  }, [onCancel, isForcing]);
+  }, [onCancel]);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -30,8 +28,6 @@ export function ChassisConflictDialog({
   }, []);
 
   return (
-    <>
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     <div
       style={{
         position: 'fixed',
@@ -50,7 +46,7 @@ export function ChassisConflictDialog({
       {/* Backdrop cliquable */}
       <div
         style={{ position: 'absolute', inset: 0 }}
-        onClick={isForcing ? undefined : onCancel}
+        onClick={onCancel}
         aria-hidden="true"
       />
 
@@ -82,18 +78,16 @@ export function ChassisConflictDialog({
               {conflict.detail}
             </p>
           </div>
-          {!isForcing && (
-            <button
-              type="button"
-              onClick={onCancel}
-              style={{ padding: '0.25rem', borderRadius: '0.5rem', border: 'none', background: 'none', cursor: 'pointer', color: '#a1a1aa' }}
-              aria-label="Fermer"
-            >
-              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={onCancel}
+            style={{ padding: '0.25rem', borderRadius: '0.5rem', border: 'none', background: 'none', cursor: 'pointer', color: '#a1a1aa' }}
+            aria-label="Fermer"
+          >
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
         {/* Liste des doublons */}
@@ -147,7 +141,6 @@ export function ChassisConflictDialog({
           <button
             type="button"
             onClick={onCancel}
-            disabled={isForcing}
             style={{
               padding: '0.5rem 1rem',
               borderRadius: '0.5rem',
@@ -156,42 +149,29 @@ export function ChassisConflictDialog({
               color: '#18181b',
               fontSize: '0.875rem',
               fontWeight: 500,
-              cursor: isForcing ? 'not-allowed' : 'pointer',
-              opacity: isForcing ? 0.6 : 1,
+              cursor: 'pointer',
             }}
           >
             Annuler
           </button>
           <button
             type="button"
-            onClick={isForcing ? undefined : onForce}
-            disabled={isForcing}
+            onClick={onForce}
             style={{
               padding: '0.5rem 1rem',
               borderRadius: '0.5rem',
               border: 'none',
-              backgroundColor: isForcing ? '#f59e0b' : '#d97706',
+              backgroundColor: '#d97706',
               color: '#ffffff',
               fontSize: '0.875rem',
               fontWeight: 500,
-              cursor: isForcing ? 'not-allowed' : 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              opacity: isForcing ? 0.8 : 1,
+              cursor: 'pointer',
             }}
           >
-            {isForcing && (
-              <svg style={{ width: '1rem', height: '1rem', animation: 'spin 1s linear infinite' }} viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" style={{ opacity: 0.25 }} />
-                <path fill="currentColor" style={{ opacity: 0.75 }} d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-            )}
-            {isForcing ? 'Retraitement en cours...' : 'Forcer le retraitement'}
+            Forcer le retraitement
           </button>
         </div>
       </div>
     </div>
-    </>
   );
 }
