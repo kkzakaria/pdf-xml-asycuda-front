@@ -9,9 +9,9 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const forceReprocess = request.headers.get('X-Force-Reprocess') === 'true';
-    const backendPath = forceReprocess ? '/api/v1/convert/async?force_reprocess=true' : '/api/v1/convert/async';
+    if (forceReprocess) formData.append('force_reprocess', 'true');
 
-    const response = await fetch(getBackendUrl(backendPath), {
+    const response = await fetch(getBackendUrl('/api/v1/convert/async'), {
       method: 'POST',
       headers: getBackendHeaders(),
       body: formData,
