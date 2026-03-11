@@ -103,7 +103,6 @@ export function HomeContent({ isAdmin }: HomeContentProps) {
     state.chassisConflict !== null &&
     (state.status === 'chassis_conflict' || state.status === 'converting' || state.status === 'polling');
 
-  console.debug('[HomeContent] status:', state.status, '| showChassisDialog:', showChassisDialog, '| chassisConflict:', state.chassisConflict);
   const isForcing = state.status === 'converting' || state.status === 'polling';
 
   if (configLoading) {

@@ -160,21 +160,16 @@ export function useConversion(): UseConversionReturn {
       }
 
       if (status.status === 'failed') {
-        console.debug('[pollJobStatus] job failed, error:', status.error);
-        const errorMsg = status.error || 'Échec de la conversion';
-        // En mode async, les conflits de châssis remontent comme un job échoué.
-        // L'endpoint /result retourne 400 (job non terminé), donc on détecte
-        // le conflit depuis le message d'erreur du job.
-        if (errorMsg.toLowerCase().includes('doublon') || errorMsg.toLowerCase().includes('chassis')) {
+        if (status.duplicate_chassis && status.duplicate_chassis.length > 0) {
           throw new ChassisConflictApiError({
             success: false,
             error: 'duplicate_chassis',
-            detail: errorMsg,
-            duplicates: [],
+            detail: status.error || 'Châssis en doublon détecté',
+            duplicates: status.duplicate_chassis,
             hint: 'Relancer avec force_reprocess=true pour forcer le retraitement',
           });
         }
-        throw new Error(errorMsg);
+        throw new Error(status.error || 'Échec de la conversion');
       }
 
       await new Promise((resolve) => setTimeout(resolve, pollInterval));
@@ -217,10 +212,7 @@ export function useConversion(): UseConversionReturn {
         dispatch({ type: 'CONVERSION_SUCCESS', payload: { result, xmlBlob } });
       }
     } catch (error) {
-      console.debug('[useConversion] caught error:', error);
-      console.debug('[useConversion] is ChassisConflictApiError:', error instanceof ChassisConflictApiError);
       if (error instanceof ChassisConflictApiError) {
-        console.debug('[useConversion] dispatching CHASSIS_CONFLICT', error.data);
         dispatch({ type: 'CHASSIS_CONFLICT', payload: error.data });
       } else {
         dispatch({

@@ -110,11 +110,9 @@ export function getDefaultMode(): 'sync' | 'async' {
 
 class ApiClient {
   private async handleResponse<T>(response: Response): Promise<T> {
-    console.debug('[API] response status:', response.status);
     if (!response.ok) {
       if (response.status === 409) {
         const conflictData = await response.json() as ChassisConflictData;
-        console.debug('[API] 409 conflict data:', conflictData);
         throw new ChassisConflictApiError(conflictData);
       }
       let errorMessage = `HTTP ${response.status}`;

@@ -22,6 +22,21 @@ export interface ConversionResult {
   processing_time: number;
 }
 
+export interface ChassisConflictEntry {
+  chassis_number: string;
+  first_seen_date: string;
+  first_filename: string;
+  first_rfcv_number: string | null;
+}
+
+export interface ChassisConflictData {
+  success: false;
+  error: 'duplicate_chassis';
+  detail: string;
+  duplicates: ChassisConflictEntry[];
+  hint: string;
+}
+
 export interface JobStatus {
   job_id: string;
   status: 'pending' | 'processing' | 'completed' | 'failed';
@@ -31,6 +46,7 @@ export interface JobStatus {
   progress?: number;
   message: string;
   error?: string;
+  duplicate_chassis?: ChassisConflictEntry[] | null;
 }
 
 export interface AsyncConversionResponse {
@@ -55,21 +71,6 @@ export interface JobResultResponse {
 export interface ApiError {
   detail: string;
   status_code?: number;
-}
-
-export interface ChassisConflictEntry {
-  chassis_number: string;
-  first_seen_date: string;
-  first_filename: string;
-  first_rfcv_number: string | null;
-}
-
-export interface ChassisConflictData {
-  success: false;
-  error: 'duplicate_chassis';
-  detail: string;
-  duplicates: ChassisConflictEntry[];
-  hint: string;
 }
 
 export interface ConversionParams {
